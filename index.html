@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Item Create API Tester - All in One</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    select, input, button { padding: 8px; margin-top: 5px; width: 250px; }
+    .box {
+      margin-top: 20px; padding: 10px; border: 1px solid #ccc;
+      background: #f9f9f9; white-space: pre-wrap;
+    }
+    h2 { margin-top: 30px; color: #333; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Item Create API Tester</h1>
+  <p>Select a version, enter item details, and test the Create API.  
+     The page will show the concept before and after sending the request.</p>
+
+  <!-- Select version -->
+  <label for="version">API Version:</label>
+  <select id="version">
+    <option value="v1">Version 1 - Basic Create</option>
+    <option value="v2">Version 2 - Validation</option>
+    <option value="v3">Version 3 - Consistent Response Format</option>
+    <option value="v4">Version 4 - Prevent Duplicates</option>
+    <option value="v5">Version 5 - Default Values & Name Formatting</option>
+    <option value="v6">Version 6 - Logging & Delay</option>
+  </select>
+
+  <!-- Concept before testing -->
+  <div class="box" id="concept-box">Select a version to see the concept...</div>
+
+  <!-- Input fields -->
+  <label for="name">Item Name:</label>
+  <input type="text" id="name" placeholder="e.g., Apple">
+
+  <label for="quantity">Quantity:</label>
+  <input type="number" id="quantity" placeholder="e.g., 5">
+
+  <button id="sendBtn">Create Item</button>
+
+  <!-- Response -->
+  <h2>API Response</h2>
+  <div class="box" id="response">Response will appear here...</div>
+
+  <!-- After-test concept -->
+  <h2>Version Concept Recap</h2>
+  <div class="box" id="recap-box">Test an API to see the recap here...</div>
+
+  <script>
+    const versionSelect = document.getElementById('version');
+    const conceptBox = document.getElementById('concept-box');
+    const recapBox = document.getElementById('recap-box');
+    const responseDiv = document.getElementById('response');
+
+    const conceptsBefore = {
+      v1: "Simple POST API that accepts name and quantity, saves to DB, returns the created item.",
+      v2: "Checks for missing fields and invalid quantity before saving. Returns 400 if invalid.",
+      v3: "Uses a fixed { success, data, error } response structure for all replies.",
+      v4: "Checks DB before saving to avoid duplicate items, returns 409 Conflict if exists.",
+      v5: "Sets default quantity to 1 if missing, formats name in Title Case before saving.",
+      v6: "Logs request details and simulates a 2-second delay to mimic heavy processing."
+    };
+
+    const conceptsAfter = {
+      v1: "You just tested a basic create API with no validation — pure POST to DB.",
+      v2: "You just saw request validation in action — the API refused bad input.",
+      v3: "You saw a consistent response format, making frontend handling easier.",
+      v4: "This API prevented duplicates by checking the database before saving.",
+      v5: "The API applied default values and formatted your input before saving.",
+      v6: "The API logged your request and waited before responding — simulating heavy processing."
+    };
+
+    // Show concept when version changes
+    versionSelect.addEventListener('change', () => {
+      const v = versionSelect.value;
+      conceptBox.textContent = conceptsBefore[v];
+    });
+
+    // Send API request
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+      const version = versionSelect.value;
+      const name = document.getElementById('name').value.trim();
+      const quantity = document.getElementById('quantity').value;
+
+      try {
+        const res = await fetch(`http://localhost:3000/${version}/items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, quantity: quantity ? Number(quantity) : undefined })
+        });
+        const data = await res.json();
+        responseDiv.textContent = JSON.stringify(data, null, 2);
+        recapBox.textContent = conceptsAfter[version];
+      } catch (err) {
+        responseDiv.textContent = `Error: ${err.message}`;
+        recapBox.textContent = "Something went wrong while testing this API.";
+      }
+    });
+
+    // Initial concept display
+    conceptBox.textContent = conceptsBefore[versionSelect.value];
+  </script>
+</body>
+</html>
